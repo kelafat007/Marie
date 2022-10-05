@@ -1,0 +1,47 @@
+@Library('Mylibrary') _
+
+pipeline{
+    agent any
+    tools {
+        maven 'maven3.8.6'
+    }
+  stages{
+      stage('1CloneCode'){
+        steps{
+          git branch: 'stage', url: 'https://github.com/kelafat007/maven-web-app'  
+      }
+          
+      }
+    stage('2BuildandTest'){
+        steps{
+        stages("Build")
+        }
+    }
+     stage('3Sonarqube'){
+        steps{
+        stages("SonarQube Report")
+        }
+    }
+    stage('4UploadArtifact'){
+        steps{
+        common("Upload Into Nexus")
+        }
+    }
+    
+    stage('6approvalGate'){
+    steps{
+    sh "echo 'ready for review' "
+    deploy adapters: [tomcat9(credentialsId: 'Tomcat-credentials', path: '', url: 'http://172.31.10.131:8080')], contextPath: null, war: 'target/*war'
+    
+    timeout(time:5, unit:'DAYS') {
+    input message: 'Application ready for deployment, Please review and approve'
+    }
+      }
+  }
+ stage('5deployTomcat'){
+     steps{
+    deploy adapters: [tomcat9(credentialsId: 'Tomcat-credentials', path: '', url: 'http://172.31.10.131:8080')], contextPath: null, war: 'target/*war'
+    }
+    }   
+}
+}
