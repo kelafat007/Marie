@@ -1,0 +1,31 @@
+node{
+  def mavenHome = tool name: 'maven3.8.6'
+  stage('1cloneCode'){
+    git "https://github.com/Omenoga/tesla-app19.git"
+  }
+  stage('2Test&Build'){
+    sh "${mavenHome}/bin/mvn clean package"
+    //bat "${mavenHome}/bin/mvn clean package"
+  }
+  stage('3codeQuality'){
+    sh "${mavenHome}/bin/mvn sonar:sonar"
+  }
+  stage('4Backup'){
+    sh "${mavenHome}/bin/mvn deploy"
+  
+  stage('5DockerBuild'){
+    sh 'docker build -t omenoga/team19-app .'
+}
+  stage('6DockerPush'){
+ withCredentials([string(credentialsId: 'Docker', variable: 'Docker_Credentials')]) {
+    sh 'docker login -u omenoga -p ${Docker_Credentials}'
+    
+}
+    sh 'docker push omenoga/team19-app'
+}
+stage('deployment'){
+    sh 'echo application ready for deployment'
+    sh 'docker run --name myapp -d -p 2000:8080 omenoga/team19-app'
+}
+}
+}
