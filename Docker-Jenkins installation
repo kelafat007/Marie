@@ -1,0 +1,23 @@
+Step 1: Install docker
+#!/bin/bash
+# Ubuntu 18.04 server installed with a non-root sudo user and firewall. 32GB memory. 8GIG root Volume
+#The script below is to set your hostname, install docker on your server, and add ubuntu to the docker group in order to run docker commands.
+sudo hostnamectl set-hostname docker
+sudo apt update -y 
+sudo apt install docker.io -y
+sudo usermod -aG docker ubuntu
+sudo su - ubuntu
+
+Step 2: Install Jenkins on ubuntu server
+#!/bin/bash
+#This script will add jenkins repository key to server sources, install jenkins, add jenkins user to the docker group and give jenkins-user sudoers right.
+sudo apt update 
+sudo apt install openjdk-11-jre-headless -y
+sudo wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add
+sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+sudo apt update && sudo apt install jenkins -y 
+sudo systemctl start jenkins
+sudo usermod -aG docker jenkins
+sudo systemctl restart docker.service
+sudo systemctl enable docker.service
+sudo echo "jenkins  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/jenkins
